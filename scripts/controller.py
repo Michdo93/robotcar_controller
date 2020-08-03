@@ -7,8 +7,9 @@ import sys
 import re
 import socket
 import threading
+#import multiprocessing as mp
 import pynput
-from pynput.keyboard import Key, Listener
+from pynput import keyboard
 import time
 import rospy
 from std_msgs.msg import Float64
@@ -46,7 +47,7 @@ class RobotCarController(object):
         self.thread.start()
 
         # Collect events until released
-        with Listener(on_press=self.on_press, on_release=self.on_release,suppress=True) as listener:
+        with keyboard.Listener(on_press=self.on_press, on_release=self.on_release,suppress=True) as listener:
             listener.join()
 
     def stop(self):
@@ -54,7 +55,6 @@ class RobotCarController(object):
         self.enable = False
         self.speedPub.unregister()
         self.steerPub.unregister()
-        self.thread.join()
 
     def printscreen(self):
         # The call os.system('clear') clears the screen.
@@ -63,7 +63,7 @@ class RobotCarController(object):
         print("a/d: left / right steering")
         print("q:   stop the motors")
         print("e:   neutral the motors")
-        print("CTRL+C:   quit the program")
+        print("Quit the program: Press at first ESC to stop and then CTRL+C")
         print("========== Speed display ==========")
         print("Motor speed:  ", self.speed)
 
@@ -89,7 +89,8 @@ class RobotCarController(object):
             # HBridge.setMotor(speed)
             self.printscreen()
         # By pressing the key "a" the robots cars turns to the left.
-        elif pressKey.char == ('a'):
+        
+        if pressKey.char == ('a'):
             self.a = True
 
             self.steer = self.steer - 0.05
@@ -100,7 +101,8 @@ class RobotCarController(object):
             self.printscreen()
         # The robot car accelerates backwards if the user presses the 
         # key "s" on the keyboard
-        elif pressKey.char == ('s'):
+        
+        if pressKey.char == ('s'):
             self.s = True
             # The robot car brakes in 10% increments each time the letter
             # "s" is pressed until it stopps. If the user presses "s" once 
@@ -117,7 +119,8 @@ class RobotCarController(object):
             #HBridge.setMotor(speed)
             self.printscreen()
         # By pressing the key "d" the robots cars turns to the right.
-        elif pressKey.char == ('d'):
+        
+        if pressKey.char == ('d'):
             self.d = True
 
             self.steer = self.steer + 0.05
@@ -126,19 +129,17 @@ class RobotCarController(object):
                 self.steer = 1
 
             self.printscreen()
-        elif pressKey.char == ('q'):
+        
+        if pressKey.char == ('q'):
             self.q = True
             self.speed = 0
             #HBridge.setMotor(speed)
             self.printscreen()
-        elif pressKey.char == ('e'):
+        
+        if pressKey.char == ('e'):
             self.e = True
             self.steer = 0
             #HBridge.setMotor(speed)
-            self.printscreen()
-        elif pressKey.char == Key.ctrl:
-            self.printscreen()
-        elif pressKey.char == ('C'):
             self.printscreen()
         
     def on_release(self, releaseKey):
@@ -149,10 +150,10 @@ class RobotCarController(object):
         self.q = False
         self.e = False
 
-        if releaseKey.char == Key.ctrl:
-            self.printscreen()
-        elif releaseKey.char == ('C'):
-            self.printscreen()
+        if releaseKey == keyboard.Key.esc:
+            # Stop listener
+            self.stop()
+            return False
 
     def check_speedAndSteer(self):
         while ((self.w == False or self.s == False) or (self.a == False or self.d == False)) and not rospy.is_shutdown():
@@ -205,7 +206,7 @@ if __name__ == "__main__":
     try:
         robotCarController = RobotCarController("robotcar")
     except rospy.ROSInterruptException:
-        robotCarController.stop()
+        #robotCarController.stop()
 
         nodes = os.popen("rosnode list").readlines()
         for i in range(len(nodes)):
