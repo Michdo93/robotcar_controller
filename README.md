@@ -2,6 +2,8 @@
 
 Is used on the control computer respectively operating computer to control the [RobotCar](https://github.com/Michdo93/robotcar). At first you have to make sure that the roscore is running and the [robotcar-pkg](https://github.com/Michdo93/robotcar-pkg) is publishing informations.
 
+![controller](https://raw.githubusercontent.com/Michdo93/robotcar_controller/master/controller.JPG)
+
 ## How to Use
 
 As recommended in the [ROS Tutorials](https://wiki.ros.org/ROS/Tutorials) the control computer respectively operating computer should run the roscore. So at first open a terminal window and execute `roscore`. After that open a second terminal window and run `rosrun robotcar_controller controller.py`.
